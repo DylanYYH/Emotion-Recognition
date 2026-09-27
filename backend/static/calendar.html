@@ -1,0 +1,421 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FirstVoice - Care Calendar</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        /* Specific Override for Calendar Page to allow wider view */
+        .app-container {
+            max-width: 900px !important;
+            width: 95% !important;
+            padding: 30px !important;
+            /* Reset any margins that might push it */
+            margin: 0 auto;
+            /* Ensure it shrinks if needed */
+            min-height: auto;
+        }
+
+        /* Calendar Layout */
+        .calendar-layout {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            width: 100%;
+        }
+
+        /* Calendar Card */
+        .calendar-card {
+            width: 100%;
+            background: rgba(214, 234, 248, 0.95);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 24px;
+            padding: 32px;
+            box-shadow: 0 15px 40px rgba(41, 128, 185, 0.15);
+            backdrop-filter: blur(12px);
+            position: relative;
+        }
+
+        .calendar-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .calendar-header h2 {
+            margin: 0;
+            font-size: 1.8rem;
+            color: #2C3E50;
+        }
+
+        .month-year {
+            font-weight: 600;
+        }
+
+        .nav-btn {
+            background: rgba(255, 255, 255, 0.5);
+            border: none;
+            cursor: pointer;
+            font-size: 1.2rem;
+            color: #2C3E50;
+            padding: 8px 14px;
+            border-radius: 50%;
+            transition: all 0.2s;
+        }
+
+        .nav-btn:hover {
+            background: white;
+            transform: scale(1.1);
+        }
+
+        /* Grid System */
+        .weekdays {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            text-align: center;
+            font-weight: 600;
+            color: #566573;
+            margin-bottom: 10px;
+            font-size: 1rem;
+        }
+
+        .days-grid {
+            display: grid;
+            grid-template-columns: repeat(7, 1fr);
+            gap: 12px;
+        }
+
+        .day-cell {
+            aspect-ratio: 1;
+            /* Keep perfect square */
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.3);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-top: 8px;
+            cursor: pointer;
+            transition: all 0.2s;
+            position: relative;
+            font-size: 1rem;
+            color: #2C3E50;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+        }
+
+        .day-cell:hover {
+            background: rgba(255, 255, 255, 0.7);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+        }
+
+        .day-cell.selected {
+            background: #3498DB;
+            color: white;
+            font-weight: 600;
+            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+            border-color: transparent;
+        }
+
+        .day-cell.today {
+            border: 2px solid #3498DB;
+        }
+
+        .day-cell.empty {
+            pointer-events: none;
+            background: transparent;
+            border: none;
+        }
+
+        /* Dots */
+        .event-dots {
+            display: flex;
+            gap: 3px;
+            margin-top: 4px;
+            flex-wrap: wrap;
+            justify-content: center;
+            width: 80%;
+        }
+
+        .dot {
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background-color: #BDC3C7;
+        }
+
+        .day-cell.selected .dot {
+            background-color: rgba(255, 255, 255, 0.8);
+        }
+
+        .dot.type-crying {
+            background-color: #E74C3C;
+        }
+
+        .dot.type-feeding {
+            background-color: #1ABC9C;
+        }
+
+        .dot.type-sleep {
+            background-color: #3498DB;
+        }
+
+        /* Overlay Styles */
+        .day-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(44, 62, 80, 0.6);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+        }
+
+        .day-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .overlay-card {
+            background: #fff;
+            width: 90%;
+            max-width: 500px;
+            height: auto;
+            max-height: 85vh;
+            border-radius: 20px;
+            box-shadow: 0 25px 60px rgba(0, 0, 0, 0.3);
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            transform: scale(0.95);
+            transition: transform 0.3s ease;
+        }
+
+        .day-overlay.active .overlay-card {
+            transform: scale(1);
+        }
+
+        .overlay-header {
+            padding: 20px;
+            background: #F4F6F7;
+            border-bottom: 1px solid #E5E7E9;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .overlay-header h2 {
+            margin: 0;
+            font-size: 1.3rem;
+            color: #2C3E50;
+        }
+
+        .overlay-content {
+            padding: 20px;
+            overflow-y: auto;
+            flex: 1;
+        }
+
+        /* Modals (re-used) */
+        .modal {
+            z-index: 1100;
+        }
+
+        /* Above overlay */
+
+        /* Timeline Items */
+        .timeline-item {
+            margin-bottom: 15px;
+            padding: 15px;
+            background: #FAFAFA;
+            border-radius: 10px;
+            border-left: 4px solid #BDC3C7;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.02);
+        }
+
+        .timeline-item.type-crying {
+            border-left-color: #E74C3C;
+        }
+
+        .timeline-item.type-feeding {
+            border-left-color: #1ABC9C;
+        }
+
+        .timeline-item.type-sleep {
+            border-left-color: #3498DB;
+        }
+
+        /* Mobile Optimizations */
+        @media (max-width: 600px) {
+            .app-container {
+                padding: 15px !important;
+                width: 98% !important;
+            }
+
+            .hero {
+                margin-bottom: 15px;
+                padding: 15px !important;
+            }
+
+            .logo {
+                font-size: 1.2rem;
+            }
+
+            .logo img {
+                height: 28px;
+            }
+
+            h1 {
+                font-size: 1.4rem;
+            }
+
+            .calendar-card {
+                padding: 15px;
+                border-radius: 16px;
+            }
+
+            .calendar-header h2 {
+                font-size: 1.2rem;
+            }
+
+            .weekdays {
+                font-size: 0.8rem;
+                margin-bottom: 5px;
+            }
+
+            .days-grid {
+                gap: 6px;
+            }
+
+            .day-cell {
+                font-size: 0.9rem;
+                padding-top: 4px;
+                border-radius: 8px;
+            }
+
+            .dot {
+                width: 4px;
+                height: 4px;
+            }
+
+            .secondary-btn {
+                font-size: 0.8rem;
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="hero" style="min-height: auto; padding: 20px;">
+            <div class="logo">
+                <img src="logo.png" alt="Logo" style="height: 32px; vertical-align: middle;"> FirstVoice
+            </div>
+            <h1>Care Calendar</h1>
+            <div style="margin-top: 15px; display: flex; gap: 10px; flex-wrap: wrap;">
+                <a href="/" class="secondary-btn"
+                    style="text-decoration: none; font-size: 0.9rem; flex: 1; justify-content: center; display: flex; align-items: center;">
+                    <i class="fa-solid fa-house" style="margin-right: 6px;"></i> Home
+                </a>
+            </div>
+        </header>
+
+        <main class="calendar-layout">
+            <!-- Centered Calendar Grid -->
+            <section class="calendar-card">
+                <div class="calendar-header">
+                    <button class="nav-btn" onclick="changeMonth(-1)"><i class="fa-solid fa-chevron-left"></i></button>
+                    <h2 id="month-year" class="month-year">...</h2>
+                    <button class="nav-btn" onclick="changeMonth(1)"><i class="fa-solid fa-chevron-right"></i></button>
+                </div>
+
+                <div class="weekdays">
+                    <div>S</div>
+                    <div>M</div>
+                    <div>T</div>
+                    <div>W</div>
+                    <div>T</div>
+                    <div>F</div>
+                    <div>S</div>
+                </div>
+
+                <div id="days-grid" class="days-grid">
+                    <!-- Days injected by JS -->
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <!-- Day Detail Overlay -->
+    <div id="day-overlay" class="day-overlay">
+        <div class="overlay-card">
+            <div class="overlay-header">
+                <h2 id="overlay-date-title">Date</h2>
+                <button onclick="closeOverlay()" class="nav-btn"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+            <div class="overlay-content" id="overlay-timeline">
+                <!-- Timeline Items Injected Here -->
+            </div>
+            <div style="padding: 15px; border-top: 1px solid #eee; text-align: center;">
+                <button onclick="openAddModal()" class="primary-btn" style="width:100%"><i class="fa-solid fa-plus"></i>
+                    Add Entry</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Entry</h3>
+            <label>Cause:</label>
+            <input type="text" id="edit-cause">
+            <label>Notes:</label>
+            <textarea id="edit-notes" rows="3"></textarea>
+            <div class="modal-actions">
+                <button onclick="saveEdit()" class="primary-btn">Save</button>
+                <button onclick="closeModal('edit-modal')" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div id="add-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Log Event</h3>
+            <label>Event Type:</label>
+            <select id="add-type"
+                style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="Feeding">Feeding</option>
+                <option value="Diaper Change">Diaper Change</option>
+                <option value="Sleep">Sleep</option>
+                <option value="Crying Detected">Crying Detected</option>
+                <option value="Other">Other</option>
+            </select>
+            <label>Details/Cause:</label>
+            <input type="text" id="add-cause" placeholder="e.g. Formula, Wet, Nap">
+            <label>Notes:</label>
+            <textarea id="add-notes" rows="2"></textarea>
+            <div class="modal-actions">
+                <button onclick="saveAdd()" class="primary-btn">Log Event</button>
+                <button onclick="closeModal('add-modal')" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="calendar.js"></script>
+</body>
+
+</html>

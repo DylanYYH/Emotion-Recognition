@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FirstVoice - Day Details</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .detail-container {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+        }
+
+        .header-nav {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            text-decoration: none;
+            color: #666;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #fff;
+            padding: 10px 15px;
+            border-radius: 50px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+            transition: all 0.2s;
+        }
+
+        .back-btn:hover {
+            background: #f0f0f0;
+            transform: translateY(-1px);
+        }
+
+        .timeline-item {
+            background: #fff;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
+            border-left: 5px solid #ccc;
+            animation: fadeIn 0.4s ease-out;
+        }
+
+        .timeline-item.type-crying {
+            border-left-color: #ff6b6b;
+        }
+
+        .timeline-item.type-feeding {
+            border-left-color: #4ecdc4;
+        }
+
+        .timeline-item.type-sleep {
+            border-left-color: #45b7d1;
+        }
+
+        .timeline-time {
+            color: #999;
+            font-size: 0.85rem;
+            margin-bottom: 5px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            font-weight: 600;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(10px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Modal Styles */
+        .modal input,
+        .modal textarea {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            background: #fdfdfd;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="app-container">
+        <header class="hero" style="min-height: auto; padding: 20px;">
+            <div class="header-nav">
+                <a href="/calendar" class="back-btn"><i class="fa-solid fa-arrow-left"></i> Month View</a>
+                <div class="logo" style="font-size: 1.2rem;">
+                    <i class="fa-solid fa-baby-carriage"></i> FirstVoice
+                </div>
+            </div>
+            <h1 id="page-title">Activity for ...</h1>
+        </header>
+
+        <main class="detail-container">
+            <div id="timeline-list">
+                <!-- Events go here -->
+                <p style="text-align: center; color: #888;">Loading...</p>
+            </div>
+
+            <div style="text-align: center; margin-top: 30px;">
+                <button onclick="openAddModal()" class="primary-btn"><i class="fa-solid fa-plus"></i> Add Event</button>
+            </div>
+        </main>
+    </div>
+
+    <!-- Edit Modal -->
+    <div id="edit-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Edit Entry</h3>
+            <label>Cause:</label>
+            <input type="text" id="edit-cause">
+            <label>Notes:</label>
+            <textarea id="edit-notes" rows="3"></textarea>
+            <div class="modal-actions">
+                <button onclick="saveEdit()" class="primary-btn">Save</button>
+                <button onclick="closeModal('edit-modal')" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Add Modal -->
+    <div id="add-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Log Event</h3>
+            <label>Event Type:</label>
+            <select id="add-type"
+                style="width: 100%; padding: 10px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #ddd;">
+                <option value="Feeding">Feeding</option>
+                <option value="Diaper Change">Diaper Change</option>
+                <option value="Sleep">Sleep</option>
+                <option value="Crying Detected">Crying Detected</option>
+                <option value="Other">Other</option>
+            </select>
+            <label>Details/Cause:</label>
+            <input type="text" id="add-cause" placeholder="e.g. Formula, Wet, Nap">
+            <label>Notes:</label>
+            <textarea id="add-notes" rows="2"></textarea>
+            <div class="modal-actions">
+                <button onclick="saveAdd()" class="primary-btn">Log Event</button>
+                <button onclick="closeModal('add-modal')" class="text-btn">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="day_view.js"></script>
+</body>
+
+</html>

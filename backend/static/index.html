@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FirstVoice - Intelligent Care</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body>
+    <div class="app-container">
+        <!-- Hero Section -->
+        <header class="hero">
+            <div class="logo">
+                <img src="logo.png" alt="FirstVoice Logo"> FirstVoice
+            </div>
+            <h1>Giving Your Baby a Voice Before They Can Speak</h1>
+            <p>AI-powered emotional analysis through sound and vision.</p>
+            <div style="margin-top: 10px;">
+                <a href="/calendar" class="secondary-btn"
+                    style="text-decoration: none; font-size: 0.9rem; margin-right: 10px;">
+                    <i class="fa-solid fa-calendar-check"></i> Care Calendar
+                </a>
+            </div>
+            <button onclick="logout()" class="logout-btn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+        </header>
+
+        <!-- Input Section -->
+        <main class="input-section">
+            <div class="tabs">
+                <button class="tab-btn active" onclick="switchTab('audio')"><i class="fa-solid fa-microphone"></i>
+                    Audio</button>
+                <button class="tab-btn" onclick="switchTab('vision')"><i class="fa-solid fa-camera"></i> Vision</button>
+            </div>
+
+            <!-- Audio Tab -->
+            <div id="audio-tab" class="tab-content active">
+                <div class="record-box">
+                    <button id="record-btn" class="record-btn">
+                        <i class="fa-solid fa-microphone"></i>
+                    </button>
+                    <p id="record-status">Tap to Listen</p>
+                    <div class="visualizer" id="audio-visualizer"></div>
+                </div>
+            </div>
+
+            <!-- Vision Tab -->
+            <div id="vision-tab" class="tab-content">
+                <div class="vision-options">
+                    <div class="upload-box">
+                        <input type="file" id="image-upload" accept="image/*" hidden>
+                        <label for="image-upload" class="upload-label">
+                            <i class="fa-solid fa-cloud-arrow-up"></i>
+                            <span>Upload Photo</span>
+                        </label>
+                    </div>
+                    <div class="camera-box">
+                        <button id="camera-btn" class="secondary-btn"><i class="fa-solid fa-camera"></i> Use
+                            Camera</button>
+                    </div>
+                </div>
+
+                <div id="camera-container" class="camera-container hidden">
+                    <video id="camera-stream" autoplay playsinline></video>
+                    <button id="capture-btn" class="capture-btn"><i class="fa-solid fa-circle"></i></button>
+                    <canvas id="camera-canvas" hidden></canvas>
+                </div>
+
+                <div id="image-preview" class="image-preview"></div>
+            </div>
+
+            <div style="margin-top: 20px; text-align: center;">
+                <a href="/auto-monitor" class="secondary-btn"
+                    style="text-decoration: none; display: inline-block; width: 100%; box-sizing: border-box;">
+                    <i class="fa-solid fa-robot"></i> Switch to Auto-Monitor Mode
+                </a>
+            </div>
+
+            <button id="analyze-btn" class="analyze-btn" disabled>Analyze Status</button>
+            <p class="settings-link"><a href="#" onclick="openSettings()"><i class="fa-solid fa-gear"></i> Settings</a>
+            </p>
+        </main>
+
+        <!-- Results Section -->
+        <section id="results-section" class="results-section hidden">
+            <div class="result-card">
+                <div class="emotion-header">
+                    <h2 id="emotion-text">Hungry</h2>
+                    <span id="confidence-badge" class="confidence">85% Confidence</span>
+                </div>
+
+                <div class="suggestions">
+                    <h3><i class="fa-solid fa-lightbulb"></i> Suggested Actions</h3>
+                    <ul id="steps-list">
+                        <!-- Populated by JS -->
+                    </ul>
+                </div>
+
+                <div class="medical-alert hidden" id="medical-alert">
+                    <h3><i class="fa-solid fa-user-doctor"></i> Medical Note</h3>
+                    <p id="medical-text"></p>
+                </div>
+
+                <button class="reset-btn" onclick="resetApp()">New Analysis</button>
+            </div>
+        </section>
+    </div>
+
+    <!-- Settings Modal -->
+    <div id="settings-modal" class="modal hidden">
+        <div class="modal-content">
+            <h3>Settings</h3>
+            <p>Account settings coming soon.</p>
+            <button onclick="closeModal('settings-modal')" class="text-btn" style="margin-top: 20px;">Close</button>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+
+</html>

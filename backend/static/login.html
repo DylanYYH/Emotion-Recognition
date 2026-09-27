@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - FirstVoice</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+
+<body class="auth-body">
+    <div class="auth-container">
+        <div class="logo">
+            <i class="fa-solid fa-baby-carriage"></i> FirstVoice
+        </div>
+        <h2>Welcome Back</h2>
+        <form id="login-form">
+            <div class="input-group">
+                <i class="fa-solid fa-user"></i>
+                <input type="text" id="username" placeholder="Username" required>
+            </div>
+            <div class="input-group">
+                <i class="fa-solid fa-lock"></i>
+                <input type="password" id="password" placeholder="Password" required>
+            </div>
+            <button type="submit" class="auth-btn">Sign In</button>
+            <p class="error-msg" id="error-msg"></p>
+        </form>
+        <p class="auth-link">New parent? <a href="/signup">Create Account</a></p>
+    </div>
+
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const errorMsg = document.getElementById('error-msg');
+
+            try {
+                const response = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ username, password })
+                });
+
+                if (response.ok) {
+                    window.location.href = '/';
+                } else {
+                    const data = await response.json();
+                    errorMsg.textContent = data.error || 'Login failed';
+                }
+            } catch (err) {
+                errorMsg.textContent = 'An error occurred. Please try again.';
+            }
+        });
+    </script>
+</body>
+
+</html>

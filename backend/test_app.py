@@ -2,7 +2,7 @@ import requests
 import json
 
 def test_analyze():
-    url = "http://127.0.0.1:5001/api/analyze"
+    url = "http://127.0.0.1:5002/api/analyze"
     headers = {'Content-Type': 'application/json'}
     data = {'type': 'audio'} # Mock payload
     

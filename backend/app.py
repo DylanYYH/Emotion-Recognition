@@ -542,4 +542,4 @@ def auto_monitor_page():
     return send_from_directory(FRONTEND_DIR, 'auto_mode.html')
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True, port=5001)
+    app.run(host='0.0.0.0', debug=True, port=5002)

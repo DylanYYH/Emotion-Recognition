@@ -58,6 +58,17 @@ function renderCalendar() {
                 dotsContainer.appendChild(dot);
             });
             div.appendChild(dotsContainer);
+
+            const reasons = [...new Set(eventsForDay.map(event => event.cause).filter(Boolean))].slice(0, 2);
+            const flagsContainer = document.createElement('div');
+            flagsContainer.className = 'reason-flags';
+            reasons.forEach(reason => {
+                const flag = document.createElement('span');
+                flag.className = `reason-flag ${getReasonClass(reason)}`;
+                flag.textContent = reason;
+                flagsContainer.appendChild(flag);
+            });
+            div.appendChild(flagsContainer);
         }
         div.onclick = () => selectDate(cellDate);
         daysGrid.appendChild(div);
@@ -117,10 +128,18 @@ function changeMonth(delta) {
 }
 
 function getDotClass(type) {
-    if (type.includes("Crying") || type === "Analysis") return "type-crying";
+    if (type.includes("Crying") || type.includes("FirstVoice") || type === "Analysis") return "type-crying";
     if (type === "Feeding") return "type-feeding";
     if (type === "Sleep") return "type-sleep";
     return "";
+}
+
+function getReasonClass(reason) {
+    const normalized = reason.toLowerCase();
+    if (normalized.includes('hungry') || normalized.includes('feeding')) return 'reason-hungry';
+    if (normalized.includes('tired') || normalized.includes('sleep')) return 'reason-tired';
+    if (normalized.includes('pain')) return 'reason-pain';
+    return 'reason-discomfort';
 }
 
 function isSameDay(d1, d2) {

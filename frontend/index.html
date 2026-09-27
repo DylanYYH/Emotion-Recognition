@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e77a68">
+    <link rel="manifest" href="/manifest.json">
+    <title>FirstVoice | Learning with Luca</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+<div class="shell">
+    <header class="topbar">
+        <a class="brand" href="/"><span class="brand-mark"><i class="fa-solid fa-wave-square"></i></span><span>FIRSTVOICE</span></a>
+        <div class="top-actions"><span class="demo-pill"><span class="live-dot"></span> DEMO MODE</span><a href="/calendar" class="icon-link" title="Open care calendar"><i class="fa-regular fa-calendar"></i></a><button class="icon-link" title="Log out" onclick="logout()"><i class="fa-solid fa-arrow-right-from-bracket"></i></button></div>
+    </header>
+
+    <main>
+        <section class="intro-row">
+            <div><p class="eyebrow">YOUR BABY'S PERSONALIZED VOICE</p><h1>FirstVoice learns with <span id="hero-name">Luca</span>.</h1><p class="lede">A current cry signal becomes a piece of a much bigger picture.</p></div>
+            <div class="profile-chip"><div class="avatar"><span id="profile-avatar">L</span><img id="profile-photo" class="profile-photo hidden" alt="Baby profile photo"></div><div><strong id="profile-name">Luca</strong><span id="profile-age">4 months</span></div><button class="edit-profile" title="Edit profile" onclick="openProfile()"><i class="fa-solid fa-pen"></i></button></div>
+        </section>
+
+        <section class="storyline" aria-label="How FirstVoice learns">
+            <div class="story-step active"><span class="step-number">01</span><strong>Hear a cry</strong><small>Possible reason now</small></div><div class="story-line"></div>
+            <div class="story-step"><span class="step-number">02</span><strong>Share feedback</strong><small>Build baby's history</small></div><div class="story-line"></div>
+            <div class="story-step"><span class="step-number">03</span><strong>See patterns</strong><small>Insights over time</small></div>
+        </section>
+
+        <section class="grid top-grid">
+            <article class="panel listen-panel">
+                <div class="panel-heading"><div><p class="eyebrow">CURRENT CRY</p><h2>What might this cry mean?</h2></div><span class="status-badge"><span class="live-dot"></span> Ready</span></div>
+                <div class="source-row"><span>Audio source</span><div class="segmented"><button class="source-btn active" data-source="demo" onclick="setSource('demo')">Demo recording</button><button class="source-btn" data-source="live" onclick="setSource('live')">Live microphone</button></div></div>
+                <div class="recording-picker"><label for="recording-select">Choose a demo recording</label><select id="recording-select" onchange="selectDemo(this.value)"><option value="evening">Evening fuss - typical 6 to 9 PM pattern</option><option value="feeding">Feeding cue - short, rhythmic cry</option><option value="nap">Nap-time cry - lower energy signal</option></select><span class="recording-note"><i class="fa-solid fa-circle-info"></i> Each recording is a deterministic demo signal.</span></div>
+                <div class="preview-row"><button id="preview-btn" class="secondary-btn" onclick="toggleDemoPreview()"><i class="fa-solid fa-play"></i> Play preview</button><span id="preview-status">Hear the selected demo signal</span></div>
+                <div id="live-recording-controls" class="live-recording-controls hidden"><div class="recording-buttons"><button id="record-btn" class="record-btn" onclick="startLiveRecording()"><i class="fa-solid fa-microphone"></i> Record live sound</button><button id="stop-record-btn" class="stop-record-btn" onclick="stopLiveRecording()" disabled><i class="fa-solid fa-stop"></i> Stop</button></div><p id="recording-status" class="recording-status">Your saved recording will stay in your private history folder.</p><audio id="live-audio-preview" class="live-audio-preview hidden" controls></audio></div>
+                <button id="analyze-btn" class="primary-btn analyze-btn" onclick="analyzeCry()"><i class="fa-solid fa-waveform-lines"></i> Analyze demo recording</button><p class="microcopy">FirstVoice offers a possible reason, not a diagnosis.</p>
+            </article>
+            <article class="panel latest-panel" id="latest-panel"><div class="panel-heading"><div><p class="eyebrow">LATEST SIGNAL</p><h2>Waiting for a cry</h2></div><i class="fa-solid fa-signal panel-icon"></i></div><div class="empty-state"><span class="empty-icon"><i class="fa-solid fa-ear-listen"></i></span><p>Choose a demo recording to see a possible reason, then add your feedback to Luca's history.</p></div></article>
+        </section>
+
+        <section id="feedback-panel" class="panel feedback-panel hidden"><div id="feedback-copy" class="feedback-copy"><p class="eyebrow">YOUR FEEDBACK</p><h2>Does this sound right?</h2><p>When you confirm or correct the prediction, FirstVoice learns how Luca communicates. The underlying classifier is not retrained automatically.</p></div><div class="feedback-actions"><button class="feedback-yes" onclick="sendClassificationFeedback(true)"><i class="fa-solid fa-check"></i> Yes, correct</button><button class="feedback-no" onclick="showCorrectionOptions()"><i class="fa-solid fa-rotate"></i> Correct it</button></div><div id="correction-options" class="correction-options hidden"><span>What was it instead?</span><button onclick="sendClassificationFeedback(false, 'Hungry')">Hungry</button><button onclick="sendClassificationFeedback(false, 'Tired')">Tired</button><button onclick="sendClassificationFeedback(false, 'Discomfort')">Discomfort</button><button onclick="sendClassificationFeedback(false, 'Pain')">Pain</button></div></section>
+
+        <section class="grid stats-grid"><article class="panel metric-panel"><div class="metric-icon coral"><i class="fa-solid fa-arrows-rotate"></i></div><div><span class="metric-label">Personalized learning</span><strong id="event-count">0</strong><span class="metric-detail">cry events analyzed</span></div><div class="metric-foot"><span><b id="confirmed-count">0</b> confirmed</span><span><b id="corrected-count">0</b> corrected</span></div></article><article class="panel metric-panel"><div class="metric-icon yellow"><i class="fa-solid fa-clock"></i></div><div><span class="metric-label">This week</span><strong id="weekly-count">0</strong><span class="metric-detail">events in the care history</span></div><div class="metric-foot"><span>Most common: <b id="common-cause">-</b></span><span>Peak: <b id="peak-period">6 to 9 PM</b></span></div></article><article class="panel metric-panel"><div class="metric-icon blue"><i class="fa-solid fa-sparkles"></i></div><div><span class="metric-label">Recommendation feedback</span><strong id="effectiveness">-</strong><span class="metric-detail">helpful responses</span></div><div class="metric-foot"><span><b id="feedback-count">0</b> parent responses</span><span>Personalized</span></div></article></section>
+
+        <section class="grid lower-grid"><article class="panel patterns-panel"><div class="panel-heading"><div><p class="eyebrow">RECENT CRY PATTERNS</p><h2>What has been happening?</h2></div><span class="demo-label" id="pattern-period-label">Last 7 days</span></div><div class="pattern-tabs" role="tablist" aria-label="Recent cry period"><button class="pattern-tab active" data-period="week" onclick="selectPatternPeriod('week')">Week</button><button class="pattern-tab" data-period="day" onclick="selectPatternPeriod('day')">Day</button><button class="pattern-tab" data-period="month" onclick="selectPatternPeriod('month')">Month</button></div><div class="pattern-summary"><strong id="pattern-event-count">0</strong><span>cry events in this period</span></div><div id="pattern-bars" class="pattern-bars"><p class="pattern-empty">No cry patterns recorded for this period yet.</p></div><p class="timeline-note">Counts are based on recorded analyses and parent corrections.</p></article><article class="panel report-panel"><div class="panel-heading"><div><p class="eyebrow">WEEKLY INSIGHTS</p><h2>Care report</h2></div><span class="ai-badge"><i class="fa-solid fa-sparkles"></i> <span id="report-provider">Demo AI</span></span></div><p id="report-summary" class="report-summary">Your report will appear after history is available.</p><div class="report-columns"><div><h3>Patterns</h3><ul id="patterns-list"></ul></div><div><h3>Suggested next steps</h3><ul id="recommendations-list"></ul></div></div><div class="caution" id="caution-text">FirstVoice provides AI-generated insights for informational purposes and is not a medical diagnostic tool.</div></article></section>
+
+        <section class="panel recommendation-panel" id="recommendation-panel"><div><p class="eyebrow">WHAT HELPS</p><h2>Your feedback improves future suggestions.</h2><p id="recommendation-copy">Run a cry analysis to receive a suggested next step based on the current signal and Luca's history.</p></div><div id="recommendation-actions" class="recommendation-actions hidden"><span>Was this suggestion helpful?</span><button class="helpful-btn" onclick="sendRecommendationFeedback(true)"><i class="fa-solid fa-thumbs-up"></i> Helpful</button><button class="not-helpful-btn" onclick="sendRecommendationFeedback(false)"><i class="fa-solid fa-thumbs-down"></i> Not helpful</button><select id="helpful-detail" aria-label="What worked?"><option value="">What worked?</option><option>Feeding</option><option>Rocking</option><option>Burping</option><option>Changing diaper</option><option>Nap</option></select></div></section>
+    </main>
+    <footer><span>FirstVoice prototype - informational use only</span><span>Your feedback stays at the center of personalization.</span></footer>
+</div>
+<div id="profile-modal" class="modal hidden"><div class="modal-content"><button class="modal-close" onclick="closeProfile()"><i class="fa-solid fa-xmark"></i></button><p class="eyebrow">INFANT PROFILE</p><h2>Update profile</h2><div class="profile-upload"><div class="profile-upload-preview"><img id="profile-photo-preview" class="hidden" alt="Selected baby profile preview"><span id="profile-photo-placeholder"><i class="fa-solid fa-camera"></i></span></div><div><label class="file-label" for="profile-photo-input">Choose baby picture</label><input id="profile-photo-input" type="file" accept="image/jpeg,image/png,image/webp" onchange="previewProfilePhoto(event)"><p id="profile-photo-status" class="upload-note">JPG, PNG, or WebP</p></div></div><label>Baby's name<input id="profile-input-name" maxlength="100"></label><label>Gender<select id="profile-input-gender"><option value="">Prefer not to say</option><option value="Girl">Girl</option><option value="Boy">Boy</option><option value="Non-binary">Non-binary</option></select></label><label>Age in months<input id="profile-input-age" type="number" min="0" max="18" step="1"></label><button class="primary-btn" onclick="saveProfile()">Save profile</button></div></div>
+<script src="script.js"></script>
+</body>
+</html>

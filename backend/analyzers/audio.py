@@ -1,30 +1,28 @@
 # from backend.app import app
 import librosa
 import numpy as np
-import random
+class CryClassifier:
+    """Layer 1 boundary. The current repository has no trained checkpoint yet."""
 
-def analyze_audio(file_path):
-    """
-    Analyzes audio file to detect crying type.
-    Returns:
-        dictionary with 'type', 'confidence'
-    """
-    try:
-        # In a real model, we would load the file and run it through a classifier.
-        # y, sr = librosa.load(file_path)
-        # S = librosa.feature.melspectrogram(y=y, sr=sr)
-        
-        # Mock logic for prototype
-        cry_types = [
-            {"type": "Hungry", "confidence": random.randint(70, 95)},
-            {"type": "Pain", "confidence": random.randint(60, 90)},
-            {"type": "Tired", "confidence": random.randint(65, 85)},
-            {"type": "Discomfort", "confidence": random.randint(60, 80)}
-        ]
-        
-        # Randomly select one for demonstration
-        result = random.choice(cry_types)
-        return result
-    except Exception as e:
-        print(f"Error analyzing audio: {e}")
-        return {"type": "Unknown", "confidence": 0}
+    DEMO_PRESETS = {
+        'feeding': ('Hungry', 72, [('Tired', 18), ('Discomfort', 10)]),
+        'nap': ('Tired', 76, [('Hungry', 14), ('Discomfort', 10)]),
+        'comfort': ('Discomfort', 68, [('Tired', 20), ('Hungry', 12)]),
+        'evening': ('Hungry', 72, [('Tired', 17), ('Discomfort', 11)]),
+        'night': ('Tired', 74, [('Hungry', 16), ('Discomfort', 10)]),
+    }
+
+    def predict(self, audio=None, demo_key='evening'):
+        label, confidence, alternatives = self.DEMO_PRESETS.get(demo_key, self.DEMO_PRESETS['evening'])
+        return {
+            'prediction': label,
+            'confidence': confidence,
+            'alternatives': [{'label': item[0], 'confidence': item[1]} for item in alternatives],
+            'source': 'demo acoustic profile',
+        }
+
+
+def analyze_audio(file_path, demo_key='evening'):
+    """Backward-compatible adapter for the original API."""
+    result = CryClassifier().predict(file_path, demo_key)
+    return {'type': result['prediction'], 'confidence': result['confidence'], 'alternatives': result['alternatives']}

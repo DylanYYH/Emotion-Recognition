@@ -1,0 +1,9 @@
+{
+  "name": "FirstVoice",
+  "short_name": "FirstVoice",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f7f8f6",
+  "theme_color": "#e77a68",
+  "description": "A two-layer demo that learns with your baby over time."
+}

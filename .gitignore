@@ -4,3 +4,5 @@ __pycache__/
 .DS_Store
 instance/
 backend/instance/
+data/firstvoice_recordings/
+data/profile_photos/

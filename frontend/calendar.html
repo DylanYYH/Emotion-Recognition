@@ -153,6 +153,53 @@
             background-color: rgba(255, 255, 255, 0.8);
         }
 
+        .reason-flags {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 88%;
+            margin-top: 4px;
+            overflow: hidden;
+        }
+
+        .reason-flag {
+            overflow: hidden;
+            padding: 2px 4px;
+            border-radius: 4px;
+            color: #fff;
+            font-size: 0.58rem;
+            line-height: 1.15;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .reason-hungry { background: #e67e22; }
+        .reason-tired { background: #6c7bd9; }
+        .reason-pain { background: #c0392b; }
+        .reason-discomfort { background: #16a085; }
+
+        .day-cell.selected .reason-flag { background: rgba(255, 255, 255, 0.24); }
+
+        .calendar-legend {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px 16px;
+            margin-top: 18px;
+            padding-top: 14px;
+            border-top: 1px solid rgba(86, 101, 115, 0.15);
+            color: #566573;
+            font-size: 0.75rem;
+        }
+
+        .legend-dot, .legend-flag {
+            display: inline-block;
+            margin-right: 5px;
+            vertical-align: middle;
+        }
+
+        .legend-dot { width: 8px; height: 8px; border-radius: 50%; }
+        .legend-flag { width: 16px; height: 8px; border-radius: 3px; }
+
         .dot.type-crying {
             background-color: #E74C3C;
         }
@@ -355,6 +402,7 @@
                 <div id="days-grid" class="days-grid">
                     <!-- Days injected by JS -->
                 </div>
+                <div class="calendar-legend"><span><i class="legend-dot type-crying"></i> Cry event</span><span><i class="legend-flag reason-hungry"></i> Hungry</span><span><i class="legend-flag reason-tired"></i> Tired</span><span><i class="legend-flag reason-discomfort"></i> Discomfort</span></div>
             </section>
         </main>
     </div>

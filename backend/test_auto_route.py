@@ -1,7 +1,7 @@
 import requests
 import random
 
-BASE_URL = "http://localhost:5001"
+BASE_URL = "http://localhost:5002"
 SESSION = requests.Session()
 
 def test_auto_monitor_route():

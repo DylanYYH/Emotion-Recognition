@@ -46,12 +46,12 @@ python -m pip install -r backend\requirements.txt
 python backend\app.py
 ```
 
-Open [http://localhost:5001](http://localhost:5001).
+Open [http://localhost:5002](http://localhost:5002).
 
 The server binds to `0.0.0.0`, so a phone on the same network can use the laptop's local IP address:
 
 ```text
-http://<laptop-local-ip>:5001
+http://<laptop-local-ip>:5002
 ```
 
 The app uses SQLite during local development. The database file is created by Flask-SQLAlchemy when the application starts.

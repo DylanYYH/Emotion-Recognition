@@ -2,7 +2,7 @@ import requests
 import random
 import time
 
-BASE_URL = "http://localhost:5001"
+BASE_URL = "http://localhost:5002"
 SESSION = requests.Session()
 
 def test_calendar_flow():

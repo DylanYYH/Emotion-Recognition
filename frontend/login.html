@@ -28,10 +28,17 @@
             <button type="submit" class="auth-btn">Sign In</button>
             <p class="error-msg" id="error-msg"></p>
         </form>
+        <div class="demo-access"><strong>Demo account</strong><span>Username: <b>demo</b></span><span>Password: <b>firstvoice</b></span><button type="button" onclick="fillDemoCredentials()">Fill demo credentials</button></div>
         <p class="auth-link">New parent? <a href="/signup">Create Account</a></p>
     </div>
 
     <script>
+        function fillDemoCredentials() {
+            document.getElementById('username').value = 'demo';
+            document.getElementById('password').value = 'firstvoice';
+            document.getElementById('error-msg').textContent = '';
+        }
+
         document.getElementById('login-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const username = document.getElementById('username').value;

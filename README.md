@@ -48,6 +48,15 @@ python backend\app.py
 
 Open [http://localhost:5002](http://localhost:5002).
 
+For repeatable demos, use the built-in account:
+
+```text
+Username: demo
+Password: firstvoice
+```
+
+The account is created automatically when the app starts.
+
 The server binds to `0.0.0.0`, so a phone on the same network can use the laptop's local IP address:
 
 ```text
@@ -68,6 +77,12 @@ The app uses SQLite during local development. The database file is created by Fl
 8. Change the age selector from 0 to 18 months to show the simulated history growing with the baby.
 
 The demo mode is deterministic. It does not require a microphone or an audio file.
+
+The dashboard supports three audio sources:
+
+- **Labeled recordings**: parent-confirmed demo samples that can be reused as learning examples.
+- **Upload recording**: choose a new audio file, save it to the signed-in parent's recording folder, preview it, and analyze it.
+- **Live microphone**: record directly in the browser and keep the existing live capture flow.
 
 Live microphone mode uses the browser's `MediaRecorder` API. After recording, the audio is uploaded to `data/firstvoice_recordings/<user_id>/` and linked to the resulting FirstVoice history event. The folder is ignored by git. The current prototype stores the live audio but still uses the deterministic classifier profile for the prediction; replacing that adapter with a real audio model is a future step.
 

@@ -16,6 +16,8 @@ from models import db, User, CareEvent, InfantProfile, InfantProfilePhoto, First
 FRONTEND_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'frontend'))
 RECORDINGS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'firstvoice_recordings'))
 PROFILE_PHOTOS_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'data', 'profile_photos'))
+DEMO_USERNAME = 'demo'
+DEMO_PASSWORD = 'firstvoice'
 app = Flask(__name__, static_folder=FRONTEND_DIR)
 app.config['SECRET_KEY'] = 'dev-secret-key-change-in-production'
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///users.db'
@@ -35,6 +37,12 @@ def load_user(user_id):
 # Initialize DB
 with app.app_context():
     db.create_all()
+    demo_user = User.query.filter_by(username=DEMO_USERNAME).first()
+    if not demo_user:
+        demo_user = User(username=DEMO_USERNAME)
+        db.session.add(demo_user)
+    demo_user.set_password(DEMO_PASSWORD)
+    db.session.commit()
 
 classifier = CryClassifier()
 longitudinal_analyzer = LongitudinalAnalyzer()
@@ -114,6 +122,11 @@ def _serialize_event(event):
     recording_filename = None
     if event.audio_reference and event.audio_reference.startswith(f'user/{event.user_id}/'):
         recording_filename = os.path.basename(event.audio_reference)
+    alternatives = classifier.predict(None, event.demo_key).get('alternatives', [])
+    try:
+        event_source = json.loads(event.context_json or '{}').get('source', 'demo')
+    except (TypeError, ValueError):
+        event_source = 'demo'
     return {
         'id': event.id,
         'timestamp': event.timestamp.isoformat(),
@@ -127,7 +140,8 @@ def _serialize_event(event):
         'demo_key': event.demo_key,
         'audio_reference': event.audio_reference,
         'recording_url': url_for('firstvoice_recording', filename=recording_filename) if recording_filename else None,
-        'source': 'live' if recording_filename else 'demo',
+        'source': event_source,
+        'alternatives': alternatives,
     }
 
 
@@ -391,7 +405,7 @@ def analyze():
         profile = _get_profile(current_user.id)
         age_months = float(data.get('age_months', profile.age_months))
         audio_reference = data.get('audio_reference') or ('demo-cry' if source == 'demo' else None)
-        if source == 'live':
+        if source in {'live', 'upload'}:
             expected_prefix = f'user/{current_user.id}/'
             if not isinstance(audio_reference, str) or not audio_reference.startswith(expected_prefix):
                 return jsonify({'error': 'Record and save a live recording before analyzing it'}), 400
@@ -400,7 +414,18 @@ def analyze():
                 return jsonify({'error': 'Saved recording could not be found'}), 404
         result = classifier.predict(None, demo_key)
         recommendation = longitudinal_analyzer.recommendation_for(result['prediction'], _event_history(current_user.id, age_months))
-        event = FirstVoiceEvent(user_id=current_user.id, age_months=age_months, demo_key=demo_key, predicted_cause=result['prediction'], classifier_confidence=result['confidence'], recommendation=recommendation, audio_reference=audio_reference, context_json=json.dumps({'source': source}))
+        event = FirstVoiceEvent(
+            user_id=current_user.id,
+            age_months=age_months,
+            demo_key=demo_key,
+            predicted_cause=result['prediction'],
+            classifier_confidence=result['confidence'],
+            parent_feedback=result['prediction'] if source == 'demo' else None,
+            feedback_confirmed=True if source == 'demo' else None,
+            recommendation=recommendation,
+            audio_reference=audio_reference,
+            context_json=json.dumps({'source': source}),
+        )
         db.session.add(event)
         db.session.flush()
         db.session.add(CareEvent(user_id=current_user.id, timestamp=event.timestamp, event_type='FirstVoice cry', cause=result['prediction'], confidence=result['confidence'], notes=f'FirstVoice event #{event.id}\nSuggested next step: {recommendation}'))

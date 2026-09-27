@@ -87,16 +87,23 @@ function renderProfilePhoto(profile) {
 }
 
 function setSource(source) {
+    const sourceChanged = selectedSource !== source;
     selectedSource = source;
     document.querySelectorAll('.source-btn').forEach(button => button.classList.toggle('active', button.dataset.source === source));
-    document.querySelector('.recording-picker').classList.toggle('hidden', source === 'live');
-    document.querySelector('.preview-row').classList.toggle('hidden', source === 'live');
+    document.querySelector('.recording-picker').classList.toggle('hidden', source !== 'demo');
+    document.querySelector('.preview-row').classList.toggle('hidden', source !== 'demo');
+    $('upload-recording-controls').classList.toggle('hidden', source !== 'upload');
     $('live-recording-controls').classList.toggle('hidden', source !== 'live');
-    if (source !== 'live') {
-        stopLiveRecording();
+    if (sourceChanged) {
         savedAudioReference = null;
         $('live-audio-preview').classList.add('hidden');
         $('live-audio-preview').removeAttribute('src');
+        $('uploaded-audio-preview').classList.add('hidden');
+        $('uploaded-audio-preview').removeAttribute('src');
+        $('upload-recording-status').textContent = 'Upload a new recording to analyze it and add it to the care history.';
+    }
+    if (source !== 'live') {
+        stopLiveRecording();
         $('recording-status').textContent = 'Your saved recording will stay in your private history folder.';
     }
     updateAnalyzeButton();
@@ -114,8 +121,10 @@ function updateAnalyzeButton() {
     $('analyze-btn').disabled = !ready;
     if (selectedSource === 'live') {
         $('analyze-btn').innerHTML = ready ? '<i class="fa-solid fa-waveform-lines"></i> Analyze saved recording' : '<i class="fa-solid fa-waveform-lines"></i> Record something first';
+    } else if (selectedSource === 'upload') {
+        $('analyze-btn').innerHTML = ready ? '<i class="fa-solid fa-waveform-lines"></i> Analyze uploaded recording' : '<i class="fa-solid fa-waveform-lines"></i> Choose a recording first';
     } else {
-        $('analyze-btn').innerHTML = '<i class="fa-solid fa-waveform-lines"></i> Analyze demo recording';
+        $('analyze-btn').innerHTML = '<i class="fa-solid fa-waveform-lines"></i> Analyze labeled recording';
     }
 }
 
@@ -189,6 +198,25 @@ function stopLiveRecording() {
     if ($('stop-record-btn')) $('stop-record-btn').disabled = true;
 }
 
+async function uploadNewRecording(event) {
+    const file = event.target.files[0];
+    if (!file) return;
+    $('upload-recording-status').textContent = 'Saving your uploaded recording...';
+    $('uploaded-audio-preview').src = URL.createObjectURL(file);
+    $('uploaded-audio-preview').classList.remove('hidden');
+    try {
+        const form = new FormData();
+        form.append('audio', file, file.name);
+        const data = await api('/api/firstvoice/recordings', { method: 'POST', body: form });
+        savedAudioReference = data.audio_reference;
+        $('upload-recording-status').textContent = 'Recording saved. It is ready for analysis.';
+    } catch (error) {
+        savedAudioReference = null;
+        $('upload-recording-status').textContent = error.message;
+    }
+    updateAnalyzeButton();
+}
+
 async function saveLiveRecording() {
     if (selectedSource !== 'live') return;
     const mimeType = mediaRecorder?.mimeType || 'audio/webm';
@@ -215,6 +243,10 @@ async function analyzeCry() {
         $('recording-status').textContent = 'Record and save a live sound before analyzing it.';
         return;
     }
+    if (selectedSource === 'upload' && !savedAudioReference) {
+        $('upload-recording-status').textContent = 'Choose and save an audio file before analyzing it.';
+        return;
+    }
     const button = $('analyze-btn');
     button.disabled = true;
     button.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Listening...';
@@ -235,8 +267,13 @@ async function analyzeCry() {
 }
 
 function renderLatest(event) {
-    const sourceNote = event.source === 'live' ? 'Saved live audio is attached. This prototype uses its demo classifier profile.' : 'Based on the selected demo recording';
-    $('latest-panel').innerHTML = `<div class="panel-heading"><div><p class="eyebrow">LATEST SIGNAL</p><h2>Possible reason right now</h2></div><span class="confidence-badge">${event.confidence}% signal</span></div><div class="result-main"><span class="result-orb"><i class="fa-solid fa-wave-square"></i></span><div><span class="result-label">Most likely</span><strong>${event.prediction}</strong><span class="result-sub">${sourceNote}</span></div></div><div class="solution-callout"><span><i class="fa-solid fa-lightbulb"></i> Suggested next step</span><p>${event.recommendation || 'Try a familiar soothing routine and observe how your baby responds.'}</p></div><div class="alternatives"><span>Other possibilities</span><b>See your feedback below to personalize this result.</b></div>`;
+    const sourceNote = event.source === 'live'
+        ? 'Saved live audio is attached. This prototype uses its demo classifier profile.'
+        : event.source === 'upload'
+            ? 'Uploaded audio is attached. This prototype uses its demo classifier profile.'
+            : 'Parent-confirmed sample used for learning';
+    const alternatives = (event.alternatives || []).map(item => `<span class="alternative-item"><b>${item.label}</b><em>${item.confidence}%</em></span>`).join('');
+    $('latest-panel').innerHTML = `<div class="panel-heading"><div><p class="eyebrow">LATEST SIGNAL</p><h2>Possible reason right now</h2></div><span class="confidence-badge" title="Illustrative demo confidence, not medical accuracy">${event.confidence}% confidence</span></div><div class="result-main"><span class="result-orb"><i class="fa-solid fa-wave-square"></i></span><div><span class="result-label">Most likely</span><strong>${event.prediction}</strong><span class="result-sub">${sourceNote}</span></div></div><div class="solution-callout"><span><i class="fa-solid fa-lightbulb"></i> Suggested next step</span><p>${event.recommendation || 'Try a familiar soothing routine and observe how your baby responds.'}</p></div><div class="alternatives"><span>Other possibilities</span><div class="alternative-list">${alternatives || '<span class="alternative-item">Parent feedback helps personalize this result.</span>'}</div></div>`;
 }
 
 function resetFeedbackPanel() {

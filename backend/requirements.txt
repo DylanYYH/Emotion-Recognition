@@ -1,0 +1,12 @@
+flask
+flask-cors
+flask-login
+flask-sqlalchemy
+werkzeug
+gunicorn
+python-dotenv
+numpy
+librosa
+soundfile
+h5py
+scikit-learn

@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#e77a68">
+    <title>FirstVoice - Auto Monitor (Hands-free)</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .hf-grid { display: grid; grid-template-columns: minmax(0, .9fr) minmax(0, 1.1fr); gap: 18px; }
+        .hf-status { display: flex; align-items: center; gap: 14px; margin: 20px 0; }
+        .hf-orb { position: relative; display: grid; place-items: center; width: 74px; height: 74px; flex: 0 0 auto; border-radius: 50%; color: #6f7b86; background: #f0f2f1; font-size: 26px; transition: background .2s, color .2s; }
+        .hf-orb.listening { color: #3f7a5e; background: #ecf7f1; }
+        .hf-orb.listening::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(79, 155, 120, .35); animation: hfpulse 1.8s infinite; }
+        .hf-orb.capturing { color: #bb5549; background: #fff0ec; }
+        .hf-orb.capturing::after { content: ""; position: absolute; inset: -6px; border-radius: 50%; border: 2px solid rgba(231, 122, 104, .5); animation: hfpulse .9s infinite; }
+        .hf-orb.analyzing { color: #477cae; background: #eaf3fb; }
+        @keyframes hfpulse { from { transform: scale(.92); opacity: 1; } to { transform: scale(1.18); opacity: 0; } }
+        .hf-state strong { display: block; font: 700 22px "Space Grotesk", sans-serif; }
+        .hf-state span { color: var(--muted); font-size: 12px; }
+        .meter { position: relative; height: 10px; overflow: hidden; border-radius: 10px; background: #edf0ee; }
+        .meter-fill { height: 100%; width: 0; border-radius: inherit; background: var(--green); transition: width .15s; }
+        .meter-gate { position: absolute; top: -2px; bottom: -2px; width: 2px; background: var(--coral); }
+        .meter-legend { display: flex; justify-content: space-between; margin-top: 6px; color: var(--muted); font-size: 10px; }
+        .hf-settings { display: grid; gap: 12px; margin-top: 18px; padding-top: 16px; border-top: 1px solid var(--line); font-size: 12px; color: var(--muted); }
+        .hf-settings label { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .hf-settings input[type=range] { width: 55%; }
+        .hf-toggle { width: 100%; margin-top: 4px; }
+        .hf-steps { margin: 16px 0 0; padding-left: 18px; color: var(--muted); font-size: 12px; line-height: 1.6; }
+        .hf-result-empty { min-height: 260px; }
+        .hf-feedback { display: flex; flex-wrap: wrap; align-items: center; gap: 7px; margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--line); font-size: 11px; color: var(--muted); }
+        .hf-feedback button { min-height: 34px; padding: 0 11px; border: 1px solid var(--line); border-radius: 8px; color: var(--ink); background: #fff; font-size: 11px; font-weight: 700; }
+        .hf-feedback button.yes { border-color: transparent; color: #fff; background: var(--green); }
+        .hf-log { display: grid; gap: 8px; margin: 14px 0 0; padding: 0; list-style: none; }
+        .hf-log li { display: flex; justify-content: space-between; gap: 10px; padding: 9px 11px; border-radius: 9px; background: #f7f8f6; font-size: 12px; }
+        .hf-log li em { color: var(--muted); font-style: normal; }
+        @media (max-width: 900px) { .hf-grid { grid-template-columns: 1fr; } }
+    </style>
+</head>
+<body>
+<div class="shell">
+    <header class="topbar">
+        <a class="brand" href="/"><span class="brand-mark"><i class="fa-solid fa-wave-square"></i></span><span>FIRSTVOICE</span></a>
+        <div class="top-actions"><a href="/" class="icon-link" title="Dashboard"><i class="fa-solid fa-house"></i></a><a href="/calendar" class="icon-link" title="Care calendar"><i class="fa-regular fa-calendar"></i></a></div>
+    </header>
+    <main>
+        <section class="intro-row">
+            <div><p class="eyebrow">HANDS-FREE MODE</p><h1>Listening for <span id="hf-name">your baby</span>.</h1><p class="lede">Leave this page open on a computer near the crib. FirstVoice stays quiet until it hears crying, then analyzes the cry and reads the result aloud, so you don't need to pick up your phone.</p></div>
+        </section>
+        <section class="hf-grid">
+            <article class="panel">
+                <div class="panel-heading"><div><p class="eyebrow">MONITOR</p><h2>Sound event detection</h2></div><i class="fa-solid fa-ear-listen panel-icon"></i></div>
+                <div class="hf-status"><span id="hf-orb" class="hf-orb"><i class="fa-solid fa-microphone-slash"></i></span><div class="hf-state"><strong id="hf-state">Off</strong><span id="hf-detail">Tap Start to begin listening.</span></div></div>
+                <div class="meter"><div id="meter-fill" class="meter-fill"></div><div id="meter-gate" class="meter-gate"></div></div>
+                <div class="meter-legend"><span>Room level <b id="level-db">-</b></span><span>Cry check above the red line</span></div>
+                <button id="toggle-btn" class="primary-btn hf-toggle" onclick="toggleMonitoring()"><i class="fa-solid fa-play"></i> Start listening</button>
+                <div class="hf-settings">
+                    <label>Read results aloud <input id="speak-toggle" type="checkbox" checked></label>
+                    <label>Sensitivity <input id="sensitivity" type="range" min="4" max="20" value="10" step="1"></label>
+                    <label>Pause after a result <select id="cooldown"><option value="15">15 s</option><option value="30" selected>30 s</option><option value="60">1 min</option></select></label>
+                </div>
+                <ol class="hf-steps">
+                    <li>A cheap loudness check runs constantly in the browser.</li>
+                    <li>Loud moments go to YAMNet, which checks for an infant cry.</li>
+                    <li>Once crying is confirmed, about 6-10 s are recorded and run through the full model, personalized with your feedback.</li>
+                    <li>The result and the first step of the action plan are read aloud and saved to the care calendar.</li>
+                </ol>
+            </article>
+            <article class="panel" id="hf-result">
+                <div class="panel-heading"><div><p class="eyebrow">LATEST CRY</p><h2>Waiting for a cry</h2></div><i class="fa-solid fa-signal panel-icon"></i></div>
+                <div class="empty-state hf-result-empty"><span class="empty-icon"><i class="fa-solid fa-baby"></i></span><p>Results show up here and are spoken aloud. You can confirm or correct them later from the dashboard.</p></div>
+            </article>
+        </section>
+        <section class="panel">
+            <div class="panel-heading"><div><p class="eyebrow">THIS SESSION</p><h2>Activity log</h2></div></div>
+            <ul id="hf-log" class="hf-log"><li><span>No events yet.</span></li></ul>
+        </section>
+    </main>
+    <footer><span>FirstVoice prototype - informational use only, not a medical device.</span><span>Audio between cries is never stored.</span></footer>
+</div>
+<script src="audio_capture.js"></script>
+<script src="auto_mode.js"></script>
+</body>
+</html>

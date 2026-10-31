@@ -5,6 +5,7 @@ flask-sqlalchemy
 werkzeug
 gunicorn
 python-dotenv
+psycopg2-binary
 numpy
 librosa
 soundfile

@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: firstvoice
+    runtime: python
+    plan: free
+    buildCommand: pip install -r backend/requirements.txt
+    startCommand: gunicorn --chdir backend app:app
+    healthCheckPath: /health
+    envVars:
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: FIRSTVOICE_WARMUP
+        value: "1"

@@ -26,9 +26,13 @@ from analyzers.explain import explain
 from models import db, User, CareEvent, InfantProfile, InfantProfilePhoto, FirstVoiceEvent, WeeklyReport
 
 FRONTEND_DIR = os.path.join(ROOT_DIR, 'frontend')
-RECORDINGS_DIR = os.path.join(ROOT_DIR, 'data', 'firstvoice_recordings')
-FEATURES_DIR = os.path.join(ROOT_DIR, 'data', 'firstvoice_features')
-PROFILE_PHOTOS_DIR = os.path.join(ROOT_DIR, 'data', 'profile_photos')
+# Render's filesystem is ephemeral unless a persistent disk is mounted. Set
+# FIRSTVOICE_STORAGE_DIR to that disk's mount path when deploying persisted
+# recordings/photos/features (for example, /var/data/firstvoice).
+STORAGE_DIR = os.path.abspath(os.getenv('FIRSTVOICE_STORAGE_DIR', os.path.join(ROOT_DIR, 'data')))
+RECORDINGS_DIR = os.path.join(STORAGE_DIR, 'firstvoice_recordings')
+FEATURES_DIR = os.path.join(STORAGE_DIR, 'firstvoice_features')
+PROFILE_PHOTOS_DIR = os.path.join(STORAGE_DIR, 'profile_photos')
 AUDIO_EXTENSIONS = {'.webm', '.wav', '.mp4', '.m4a', '.ogg', '.mp3', '.flac'}
 DEMO_USERNAME = 'demo'
 DEMO_PASSWORD = 'firstvoice'
@@ -36,10 +40,25 @@ REPORT_MAX_AGE = datetime.timedelta(days=7)
 REPORT_NEW_EVENTS_TRIGGER = 10
 
 app = Flask(__name__, static_folder=FRONTEND_DIR)
-app.config['SECRET_KEY'] = os.getenv('FLASK_SECRET_KEY', 'dev-secret-key-change-in-production')
-app.config['SQLALCHEMY_DATABASE_URI'] = os.getenv('FIRSTVOICE_DB', 'sqlite:///users.db')
+secret_key = os.getenv('FLASK_SECRET_KEY')
+if not secret_key and os.getenv('RENDER'):
+    raise RuntimeError('FLASK_SECRET_KEY must be set in the Render environment')
+app.config['SECRET_KEY'] = secret_key or 'dev-secret-key-change-in-production'
+
+database_url = os.getenv('FIRSTVOICE_DB', 'sqlite:///users.db')
+# Render may provide the older postgres:// scheme. SQLAlchemy requires the
+# explicit psycopg2 scheme for that value.
+if database_url.startswith('postgres://'):
+    database_url = database_url.replace('postgres://', 'postgresql+psycopg2://', 1)
+app.config['SQLALCHEMY_DATABASE_URI'] = database_url
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 app.config['MAX_CONTENT_LENGTH'] = 25 * 1024 * 1024
+app.config['SESSION_COOKIE_HTTPONLY'] = True
+app.config['SESSION_COOKIE_SAMESITE'] = 'Lax'
+app.config['SESSION_COOKIE_SECURE'] = os.getenv('COOKIE_SECURE', '1' if os.getenv('RENDER') else '0') == '1'
+
+for directory in (RECORDINGS_DIR, FEATURES_DIR, PROFILE_PHOTOS_DIR):
+    os.makedirs(directory, exist_ok=True)
 
 CORS(app)
 db.init_app(app)

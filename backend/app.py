@@ -7,6 +7,7 @@ import datetime
 import json
 import mimetypes
 import uuid
+from sqlalchemy import inspect, text
 
 import numpy as np
 
@@ -75,6 +76,14 @@ def load_user(user_id):
 
 with app.app_context():
     db.create_all()
+    # Add new profile fields to existing SQLite databases without requiring a
+    # migration tool for this demo deployment.
+    profile_columns = {column['name'] for column in inspect(db.engine).get_columns('infant_profile')}
+    if 'profile_setup_complete' not in profile_columns:
+        with db.engine.begin() as connection:
+            connection.execute(text(
+                'ALTER TABLE infant_profile ADD COLUMN profile_setup_complete BOOLEAN NOT NULL DEFAULT 0'
+            ))
     demo_user = User.query.filter_by(username=DEMO_USERNAME).first()
     if not demo_user:
         demo_user = User(username=DEMO_USERNAME)
@@ -113,7 +122,8 @@ def _get_profile(user_id):
 
 def _profile_dict(profile):
     return {'name': profile.name, 'age_months': profile.age_months, 'gender': profile.gender,
-            'feeding_interval': profile.feeding_interval, 'sleep_note': profile.sleep_note}
+            'feeding_interval': profile.feeding_interval, 'sleep_note': profile.sleep_note,
+            'profile_setup_complete': profile.profile_setup_complete}
 
 
 def _profile_photo_url(user_id):
@@ -329,7 +339,9 @@ def _dashboard_data(age_months=None, period='week', allow_generate=True, force_r
         'model': classifier.model_info(),
         'llm': {'configured': longitudinal_analyzer.refresh_provider().configured,
                 'provider': longitudinal_analyzer.llm.display_name},
+        'username': current_user.username,
         'demo_mode': current_user.username == DEMO_USERNAME,
+        'profile_setup_required': current_user.username != DEMO_USERNAME and not profile.profile_setup_complete,
         'llm_configured': longitudinal_analyzer.llm.configured,
     }
 
@@ -700,10 +712,14 @@ def recommendation_feedback():
 def update_firstvoice_profile():
     profile = _get_profile(current_user.id)
     data = request.get_json(silent=True) or {}
-    profile.name = (data.get('name') or profile.name)[:100]
+    name = (data.get('name') or '').strip()
+    if not name:
+        return jsonify({'error': "Please enter your baby's name"}), 400
+    profile.name = name[:100]
     profile.age_months = max(0, min(18, float(data.get('age_months', profile.age_months))))
     profile.gender = (data.get('gender') if data.get('gender') is not None else profile.gender)[:50]
     profile.feeding_interval = (data.get('feeding_interval') or profile.feeding_interval)[:80]
+    profile.profile_setup_complete = True
     db.session.commit()
     return jsonify(_dashboard_data(profile.age_months, allow_generate=False)), 200
 

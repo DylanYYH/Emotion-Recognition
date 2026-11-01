@@ -37,6 +37,7 @@ class InfantProfile(db.Model):
     gender = db.Column(db.String(50), default='')
     feeding_interval = db.Column(db.String(80), default='Every 2-3 hours')
     sleep_note = db.Column(db.String(120), default='')
+    profile_setup_complete = db.Column(db.Boolean, default=False, nullable=False)
 
 
 class InfantProfilePhoto(db.Model):

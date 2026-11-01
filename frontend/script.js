@@ -8,6 +8,7 @@ let mic = null;
 let savedAudioReference = null;
 let demoPreviewNode = null;
 let demoPreviewContext = null;
+let profileSetupRequired = false;
 
 const $ = (id) => document.getElementById(id);
 
@@ -34,6 +35,8 @@ async function loadDashboard() {
 
 function renderDashboard(data) {
     currentProfile = data.profile;
+    profileSetupRequired = Boolean(data.profile_setup_required);
+    $('user-name').textContent = data.username || '';
     selectedAge = data.profile.age_months;
     $('hero-name').textContent = currentProfile.name;
     $('profile-name').textContent = currentProfile.name;
@@ -54,6 +57,9 @@ function renderDashboard(data) {
     $('demo-pill').classList.toggle('hidden', !data.demo_mode);
     if (data.stats.peak_period) $('peak-period').textContent = data.stats.peak_period;
     if (data.latest && !activeEvent) renderLatest(data.latest);
+    if (profileSetupRequired && $('profile-modal').classList.contains('hidden')) {
+        setTimeout(() => openProfile(true), 0);
+    }
 }
 
 async function selectPatternPeriod(period) {
@@ -372,7 +378,7 @@ function renderReport(report) {
     $('caution-text').textContent = (report.cautions || []).join(' ') || 'FirstVoice provides AI-generated insights for informational purposes and is not a medical diagnostic tool.';
 }
 
-function openProfile() {
+function openProfile(forceSetup = false) {
     $('profile-input-name').value = currentProfile.name;
     $('profile-input-age').value = currentProfile.age_months;
     $('profile-input-gender').value = currentProfile.gender || '';
@@ -388,9 +394,15 @@ function openProfile() {
         preview.classList.add('hidden');
         $('profile-photo-placeholder').classList.remove('hidden');
     }
+    $('profile-modal-title').textContent = forceSetup ? 'Tell us about your baby' : 'Update profile';
+    $('profile-setup-copy').classList.toggle('hidden', !forceSetup);
+    $('profile-modal-close').classList.toggle('hidden', forceSetup);
     $('profile-modal').classList.remove('hidden');
 }
-function closeProfile() { $('profile-modal').classList.add('hidden'); }
+function closeProfile() {
+    if (profileSetupRequired) return;
+    $('profile-modal').classList.add('hidden');
+}
 
 function previewProfilePhoto(event) {
     const file = event.target.files[0];
@@ -404,7 +416,9 @@ function previewProfilePhoto(event) {
 
 async function saveProfile() {
     try {
-        const data = await api('/api/firstvoice/profile', { method: 'PUT', body: JSON.stringify({ name: $('profile-input-name').value || 'Luca', age_months: Number($('profile-input-age').value || 4), gender: $('profile-input-gender').value }) });
+        const name = $('profile-input-name').value.trim();
+        if (!name) { $('profile-input-name').focus(); return; }
+        const data = await api('/api/firstvoice/profile', { method: 'PUT', body: JSON.stringify({ name, age_months: Number($('profile-input-age').value || 4), gender: $('profile-input-gender').value }) });
         const photo = $('profile-photo-input').files[0];
         if (photo) {
             const form = new FormData();

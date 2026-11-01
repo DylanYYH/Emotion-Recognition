@@ -299,9 +299,9 @@ function renderModelPanel(data) {
     const model = data.model || {};
     if (model.trained) {
         const replay = model.personalization_replay;
-        $('model-layer1').innerHTML = `YAMNet (a CNN pretrained on AudioSet) listens for crying and turns the log-Mel spectrogram into embeddings. A head trained on ${Object.values(model.class_counts || {}).reduce((a, b) => a + b, 0)} Donate-a-Cry clips, plus MFCC, pitch and energy features, picks the cause. On babies it never heard, balanced accuracy is ${Math.round((model.balanced_accuracy || 0) * 100)}% (chance is ${Math.round((model.chance || 0.25) * 100)}%)${replay ? `. Replaying held-out families with their own feedback raised accuracy from ${Math.round(replay.general_accuracy * 100)}% to ${Math.round(replay.personalized_accuracy * 100)}%` : ''}. That gap is why FirstVoice learns each baby individually.`;
+        $('model-layer1').textContent = `FirstVoice listens for clues in each cry and compares them with ${Object.values(model.class_counts || {}).reduce((a, b) => a + b, 0)} labeled recordings to suggest a possible reason. It gets the right answer about ${Math.round((model.balanced_accuracy || 0) * 100)}% of the time with babies it has not heard before${replay ? `, and improved from ${Math.round(replay.general_accuracy * 100)}% to ${Math.round(replay.personalized_accuracy * 100)}% when it used parents' feedback` : ''}.`;
     } else {
-        $('model-layer1').textContent = model.message || 'The Layer 1 model has not been trained yet.';
+        $('model-layer1').textContent = model.message || 'FirstVoice is still learning how to understand cries.';
     }
     const examples = data.stats.personal_examples || 0;
     $('model-personal').textContent = examples

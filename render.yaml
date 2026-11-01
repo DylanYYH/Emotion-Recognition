@@ -2,7 +2,7 @@ services:
   - type: web
     name: firstvoice
     runtime: python
-    plan: free
+    plan: pro
     buildCommand: pip install -r backend/requirements.txt
     startCommand: gunicorn --chdir backend app:app
     healthCheckPath: /health
@@ -11,3 +11,11 @@ services:
         generateValue: true
       - key: FIRSTVOICE_WARMUP
         value: "1"
+      - key: FIRSTVOICE_STORAGE_DIR
+        value: /var/data/firstvoice
+      - key: FIRSTVOICE_DB
+        value: sqlite:////var/data/firstvoice/users.db
+    disk:
+      name: firstvoice-data
+      mountPath: /var/data
+      sizeGB: 1

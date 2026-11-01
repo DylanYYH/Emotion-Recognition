@@ -19,15 +19,15 @@
         <form id="signup-form">
             <div class="input-group">
                 <i class="fa-solid fa-user"></i>
-                <input type="text" id="username" placeholder="Username" required>
+                <input type="text" id="username" placeholder="Username" minlength="3" maxlength="150" autocomplete="username" required>
             </div>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" id="password" placeholder="Password" required>
+                <input type="password" id="password" placeholder="Password (at least 6 characters)" minlength="6" autocomplete="new-password" required>
             </div>
             <div class="input-group">
                 <i class="fa-solid fa-lock"></i>
-                <input type="password" id="confirm-password" placeholder="Confirm Password" required>
+                <input type="password" id="confirm-password" placeholder="Confirm Password" minlength="6" autocomplete="new-password" required>
             </div>
             <button type="submit" class="auth-btn">Sign Up</button>
             <p class="error-msg" id="error-msg"></p>

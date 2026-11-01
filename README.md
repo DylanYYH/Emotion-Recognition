@@ -53,9 +53,9 @@ Open [http://localhost:5002](http://localhost:5002). The built-in account `demo`
 
 ## Deploy on Render
 
-This repository includes a `render.yaml` blueprint. In Render, choose **New > Blueprint**, connect the repository, and deploy it. The service uses `gunicorn --chdir backend app:app` and exposes `/health` for health checks.
+This repository includes a `render.yaml` blueprint. In Render, choose **New > Blueprint**, connect the repository, and deploy it. The service uses the Pro plan, `gunicorn --chdir backend app:app`, a 1 GB persistent disk mounted at `/var/data`, and `/health` for health checks.
 
-The included Blueprint is intentionally configured as a free demo: it uses the default local SQLite database and temporary local file storage. New accounts, recordings, and profile photos can disappear when the free service restarts. For a real deployment, create a Render Postgres database and set `FIRSTVOICE_DB` to its internal connection string. If recordings and profile photos must survive restarts, attach a persistent disk mounted at `/var/data` (or change `FIRSTVOICE_STORAGE_DIR` to the disk mount path). Render's default filesystem is ephemeral.
+The blueprint stores the SQLite database at `/var/data/firstvoice/users.db` and recordings/profile photos below `/var/data/firstvoice`, so demo accounts and their data survive normal service restarts. Passwords are stored as hashes, never as plaintext. For a multi-instance production deployment, use Render Postgres by setting `FIRSTVOICE_DB` to its internal connection string; a single attached disk should not be shared by multiple web instances.
 
 TensorFlow is **not** needed. YAMNet runs as a NumPy port of Google's official weights (`backend/models/pretrained/yamnet.h5`, Apache 2.0), checked against the TensorFlow reference to within 1e-5 (`backend/tools/verify_yamnet.py`). The trained cry head ships in `backend/models/`, so the app works right after install.
 

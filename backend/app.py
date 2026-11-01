@@ -369,26 +369,37 @@ def _save_audio_upload(file_storage):
 # --- Auth Routes ---
 @app.route('/api/signup', methods=['POST'])
 def signup():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
-    
+    data = request.get_json(silent=True) or {}
+    username = (data.get('username') or '').strip()
+    password = data.get('password') or ''
+
+    if len(username) < 3 or len(username) > 150:
+        return jsonify({'error': 'Username must be between 3 and 150 characters'}), 400
+    if not username.replace('_', '').replace('-', '').isalnum():
+        return jsonify({'error': 'Username may contain only letters, numbers, hyphens, and underscores'}), 400
+    if len(password) < 6:
+        return jsonify({'error': 'Password must be at least 6 characters'}), 400
     if User.query.filter_by(username=username).first():
         return jsonify({'error': 'Username already exists'}), 400
-        
+
     new_user = User(username=username)
     new_user.set_password(password)
-    db.session.add(new_user)
-    db.session.commit()
-    
+    try:
+        db.session.add(new_user)
+        db.session.commit()
+    except Exception:
+        db.session.rollback()
+        app.logger.exception('Unable to create account')
+        return jsonify({'error': 'Unable to create account. Please try again.'}), 500
+
     login_user(new_user)
     return jsonify({'message': 'Registered successfully'}), 200
 
 @app.route('/api/login', methods=['POST'])
 def login():
-    data = request.json
-    username = data.get('username')
-    password = data.get('password')
+    data = request.get_json(silent=True) or {}
+    username = (data.get('username') or '').strip()
+    password = data.get('password') or ''
     
     user = User.query.filter_by(username=username).first()
     if user and user.check_password(password):
@@ -430,8 +441,6 @@ def login_page():
 
 @app.route('/signup')
 def signup_page():
-    if current_user.is_authenticated:
-        return redirect('/')
     return send_from_directory(FRONTEND_DIR, 'signup.html')
 
 # --- Protected Routes ---

@@ -374,9 +374,9 @@ def signup():
     password = data.get('password') or ''
 
     if len(username) < 3 or len(username) > 150:
-        return jsonify({'error': 'Username must be between 3 and 150 characters'}), 400
-    if not username.replace('_', '').replace('-', '').isalnum():
-        return jsonify({'error': 'Username may contain only letters, numbers, hyphens, and underscores'}), 400
+        return jsonify({'error': 'Username or email must be between 3 and 150 characters'}), 400
+    if any(ord(character) < 32 or ord(character) == 127 for character in username):
+        return jsonify({'error': 'Username or email contains an invalid character'}), 400
     if len(password) < 6:
         return jsonify({'error': 'Password must be at least 6 characters'}), 400
     if User.query.filter_by(username=username).first():

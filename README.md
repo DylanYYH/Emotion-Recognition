@@ -53,7 +53,7 @@ Open [http://localhost:5002](http://localhost:5002). The built-in account `demo`
 
 ## Deploy on Render
 
-This repository includes a `render.yaml` blueprint. In Render, choose **New > Blueprint**, connect the repository, and deploy it. The service uses the Pro plan, `gunicorn --chdir backend app:app`, a 1 GB persistent disk mounted at `/var/data`, and `/health` for health checks.
+This repository includes a `render.yaml` blueprint. In Render, choose **New > Blueprint**, connect the repository, and deploy it. The workspace subscription is managed in Render Billing; the Blueprint leaves the existing service compute plan unchanged, uses `gunicorn --chdir backend app:app`, attaches a 1 GB persistent disk at `/var/data`, and exposes `/health` for health checks.
 
 The blueprint stores the SQLite database at `/var/data/firstvoice/users.db` and recordings/profile photos below `/var/data/firstvoice`, so demo accounts and their data survive normal service restarts. Passwords are stored as hashes, never as plaintext. For a multi-instance production deployment, use Render Postgres by setting `FIRSTVOICE_DB` to its internal connection string; a single attached disk should not be shared by multiple web instances.
 
